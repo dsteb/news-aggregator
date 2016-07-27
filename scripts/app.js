@@ -65,28 +65,21 @@ APP.Main = (function() {
 
     // This seems odd. Surely we could just select the story
     // directly rather than looping through all of them.
-    var storyElements = document.querySelectorAll('.story');
+    var story = document.getElementById('s-' + key);
 
-    for (var i = 0; i < storyElements.length; i++) {
+    details.time *= 1000;
+    var html = storyTemplate(details);
+    story.innerHTML = html;
+    story.addEventListener('click', onStoryClick.bind(this, details));
+    story.classList.add('clickable');
 
-      if (storyElements[i].getAttribute('id') === 's-' + key) {
+    // Tick down. When zero we can batch in the next load.
+    storyLoadCount--;
 
-        details.time *= 1000;
-        var story = storyElements[i];
-        var html = storyTemplate(details);
-        story.innerHTML = html;
-        story.addEventListener('click', onStoryClick.bind(this, details));
-        story.classList.add('clickable');
-
-        // Tick down. When zero we can batch in the next load.
-        storyLoadCount--;
-
-      }
-    }
 
     // Colorize on complete.
-    if (storyLoadCount === 0)
-      colorizeAndScaleStories();
+    // if (storyLoadCount === 0)
+    //   colorizeAndScaleStories();
   }
 
   function onStoryClick(details) {
@@ -296,28 +289,30 @@ APP.Main = (function() {
   });
 
   main.addEventListener('scroll', function() {
-
+    var scrollTop = main.scrollTop;
+    var scrollHeight = main.scrollHeight;
+    var offsetHeight = main.offsetHeight;
     var header = $('header');
     var headerTitles = header.querySelector('.header__title-wrapper');
-    var scrollTopCapped = Math.min(70, main.scrollTop);
+    var scrollTopCapped = Math.min(70, scrollTop);
     var scaleString = 'scale(' + (1 - (scrollTopCapped / 300)) + ')';
 
-    colorizeAndScaleStories();
+    // colorizeAndScaleStories();
 
     header.style.height = (156 - scrollTopCapped) + 'px';
     headerTitles.style.webkitTransform = scaleString;
     headerTitles.style.transform = scaleString;
 
     // Add a shadow to the header.
-    if (main.scrollTop > 70)
+    if (scrollTop > 70)
       document.body.classList.add('raised');
     else
       document.body.classList.remove('raised');
 
     // Check if we need to load the next batch of stories.
-    var loadThreshold = (main.scrollHeight - main.offsetHeight -
+    var loadThreshold = (scrollHeight - offsetHeight -
         LAZY_LOAD_THRESHOLD);
-    if (main.scrollTop > loadThreshold)
+    if (scrollTop > loadThreshold)
       loadStoryBatch();
   });
 
